@@ -58,7 +58,7 @@ function FileUpload(props) {
           <div onClick={() => deleteHandler(image)} key={index}>
             <img
               style={{ minWidth: '300px', width: '300px', height: ' 240px' }}
-              src={`http://localhost:4000/${image}`}
+              src={`http://localhost:8000/${image}`}
             />
           </div>
         ))}

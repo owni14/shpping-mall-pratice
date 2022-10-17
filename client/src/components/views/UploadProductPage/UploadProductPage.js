@@ -39,6 +39,7 @@ function UploadProductPage(props) {
   };
 
   const updateImages = (newImages) => {
+    console.log('uploaded images: ', newImages);
     setImages(newImages);
   };
 
@@ -56,7 +57,7 @@ function UploadProductPage(props) {
       title: Title,
       description: Description,
       price: Price,
-      iamges: Images,
+      images: Images,
       continent: Continent,
     };
     Axios.post('/api/product', body).then((response) => {
