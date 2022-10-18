@@ -45,11 +45,17 @@ router.post('/', (req, res) => {
 
 router.post('/products', (req, res) => {
   // product collection에 들어 있는 모든 상품 가져오기
+
+  let limit = req.body.limit ? parseInt(req.body.limit) : 20;
+  let skip = req.body.skip ? parseInt(req.body.skip) : 0;
+
   Product.find()
     .populate('writer')
-    .exec((err, productsInfo) => {
+    .skip(skip)
+    .limit(limit)
+    .exec((err, productInfo) => {
       if (err) return res.status(400).json({ success: false, err });
-      return res.status(200).json({ success: true, productsInfo });
+      return res.status(200).json({ success: true, productInfo, postSize: productInfo.length });
     });
 });
 

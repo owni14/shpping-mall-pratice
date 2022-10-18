@@ -3,32 +3,56 @@ import { FaCode } from 'react-icons/fa';
 import axios from 'axios';
 import { Icon, Col, Card, Row } from 'antd';
 import Meta from 'antd/lib/card/Meta';
+import ImageSlider from '../../utils/ImageSlider';
 
 function LandingPage() {
   const [Products, setProducts] = useState([]);
+  const [Skip, setSkip] = useState(0);
+  const [Limit, setLimit] = useState(8);
+  const [PostSize, setPostSize] = useState(0);
+
   useEffect(() => {
-    axios.post('/api/product/products').then((response) => {
+    let body = {
+      skip: Skip,
+      limit: Limit,
+    };
+
+    getProducts(body);
+  }, []);
+
+  const getProducts = (body) => {
+    axios.post('/api/product/products', body).then((response) => {
       if (response.data.success) {
-        console.log(response.data);
-        setProducts(response.data.productsInfo);
+        if (body.loadMore) {
+          setProducts([...Products, ...response.data.productInfo]);
+        } else {
+          setProducts(response.data.productInfo);
+        }
+        setPostSize(response.data.postSize);
       } else {
         alert('상품들을 가져오는데 실패 했습니다.');
       }
     });
-  }, []);
+  };
+
+  const loadMoreHandler = () => {
+    let skip = Skip + Limit;
+
+    let body = {
+      skip: skip,
+      limit: Limit,
+      loadMore: true,
+    };
+
+    getProducts(body);
+    setSkip(skip);
+  };
 
   const renderCard = Products.map((product, index) => {
     console.log(product);
     return (
       <Col lg={6} md={8} xs={24} key={index}>
-        <Card
-          cover={
-            <img
-              style={{ width: '100%', maxHeight: '150px' }}
-              src={`http://localhost:8000/${product.images[0]}`}
-            />
-          }
-        >
+        <Card cover={<ImageSlider images={product.images} />}>
           <Meta title={product.title} description={`$${product.price}`} />
         </Card>
       </Col>
@@ -50,10 +74,12 @@ function LandingPage() {
       {/* Cards */}
 
       <Row gutter={[16, 16]}>{renderCard}</Row>
-
-      <div style={{ justifyContent: 'center' }}>
-        <button>더보기</button>
-      </div>
+      <br />
+      {PostSize >= Limit && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button onClick={loadMoreHandler}>더보기</button>
+        </div>
+      )}
     </div>
   );
 }
