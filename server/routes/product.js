@@ -52,13 +52,20 @@ router.post('/products', (req, res) => {
 
   for (let key in req.body.filters) {
     if (req.body.filters[key].length > 0) {
-      console.log('key:: ', key);
-      findArgs[key] = req.body.filters[key];
-      console.log('req.body.filters[key]:: ', req.body.filters[key]);
+      if (key === 'price') {
+        findArgs[key] = {
+          // Grater than equal
+          $gte: req.body.filters[key][0],
+          // Less than equal
+          $lte: req.body.filters[key][1],
+        };
+      } else {
+        findArgs[key] = req.body.filters[key];
+      }
     }
   }
 
-  console.log('findArgs', findArgs);
+  console.log('findArgs: ', findArgs);
 
   Product.find(findArgs)
     .populate('writer')
@@ -66,7 +73,9 @@ router.post('/products', (req, res) => {
     .limit(limit)
     .exec((err, productInfo) => {
       if (err) return res.status(400).json({ success: false, err });
-      return res.status(200).json({ success: true, productInfo, postSize: productInfo.length });
+      return res
+        .status(200)
+        .json({ success: true, productInfo, postSize: productInfo.length });
     });
 });
 
