@@ -33,10 +33,8 @@ export default function (state = {}, action) {
         ...state,
         cartDetail: action.payload.productInfo,
         userData: {
-          ...state,
-          userData: {
-            cart: action.payload.cart,
-          },
+          ...state.userData,
+          cart: action.payload.cart,
         },
       };
     default:
