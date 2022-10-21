@@ -99,15 +99,49 @@ router.post('/products', (req, res) => {
 router.get('/products_by_id', (req, res) => {
   // type은 req.query를 이용해서 가져온다.
   let type = req.query.type;
-  let productId = req.query.id;
+  let productIds = req.query.id;
+
+  if (type === 'array') {
+    let ids = req.query.id.split(',');
+    productIds = ids.map((item) => {
+      return item;
+    });
+  }
 
   // productId를 이용해서 DB에서 productId와 같은 상품의 정보를 가져온다.
-  Product.find({ _id: productId })
+  Product.find({ _id: { $in: productIds } })
     .populate(`writer`)
     .exec((err, product) => {
       if (err) return res.status(400).send(err);
-      return res.status(200).send({ success: true, product });
+      return res.status(200).send(product);
     });
+});
+
+router.get('/removeFromCart', auth, (req, res) => {
+  // 먼저 cart안에 내가 지우려고 한 상품을 지워주기
+  User.findOneAndUpdate(
+    { _id: req.user._id },
+    {
+      $pull: { cart: { id: req.query.id } },
+    },
+    { new: true },
+    (err, userInfo) => {
+      let cart = userInfo.cart;
+      let array = cart.map((item) => {
+        return item.id;
+      });
+
+      // product collection에서 현재 남아있는 상품들의 정보를 가져오기
+      Product.find({ _id: { $in: array } })
+        .populate('writer')
+        .exec((err, productInfo) => {
+          return res.status(200).json({
+            productInfo,
+            cart,
+          });
+        });
+    }
+  );
 });
 
 module.exports = router;
